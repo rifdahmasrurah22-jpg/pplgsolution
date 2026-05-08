@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Penjual - PPLG Solution</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* --- GLOBAL STYLES --- */
+        :root {
+            --primary-purple: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --bg-dark: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --gray-accent: #334155;
+            --border-color: rgba(148, 163, 184, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        aside {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 30px 25px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-purple);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 10px 15px;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(139, 92, 246, 0.1);
+            color: var(--primary-purple);
+        }
+
+        .nav-link i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+        }
+
+        /* --- MAIN CONTENT --- */
+        main {
+            flex: 1;
+            margin-left: 260px;
+            transition: var(--transition);
+            padding-bottom: 50px;
+        }
+
+        /* --- TOP BAR --- */
+        .top-bar {
+            height: 70px;
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--gray-accent);
+            color: var(--text-main);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .btn-logout:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .menu-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        /* --- DASHBOARD CONTENT --- */
+        .content-body {
+            padding: 30px 40px;
+        }
+
+        .page-title {
+            margin-bottom: 30px;
+        }
+
+        /* Summary Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h4 {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .stat-card .trend {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #10b981; /* Green */
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .chart-container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        .chart-caption {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Table Section */
+        .table-container {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.02);
+            padding: 15px 25px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 18px 25px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .badge-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1024px) {
+            aside {
+                left: -260px;
+            }
+            main {
+                margin-left: 0;
+            }
+            body.sidebar-open aside {
+                left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .content-body {
+                padding: 20px;
+            }
+            .top-bar {
+                padding: 0 20px;
+            }
+            .table-container {
+                overflow-x: auto;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            PPLG Solution
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active">Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Produk</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Transaksi</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Laporan</a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">Pengaturan</a>
+            </li>
+        </ul>
+    </aside>
+
+    <main>
+        <header class="top-bar">
+            <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+            <div class="search-box">
+                </div>
+            <div class="user-profile">
+                <span>Halo, <strong>Admin PPLG</strong></span>
+                <button class="btn-logout">Logout</button>
+            </div>
+        </header>
+
+        <div class="content-body">
+            <div class="page-title">
+                <h1>Ringkasan Penjualan</h1>
+                <p style="color: var(--text-muted);">Selamat datang kembali di panel kontrol Anda.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>Total Penjualan</h4>
+                    <div class="value">IDR 12.450.000</div>
+                    <div class="trend">↑ 12% dari bulan lalu</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Total Transaksi</h4>
+                    <div class="value">158</div>
+                    <div class="trend">↑ 5% dari bulan lalu</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Produk Terjual</h4>
+                    <div class="value">342</div>
+                    <div class="trend">↑ 8% dari bulan lalu</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Penjualan 30 Hari Terakhir</h3>
+                    <canvas id="monthlyChart"></canvas>
+                    <p class="chart-caption">Statistik akumulasi pendapatan harian dalam satu bulan.</p>
+                </div>
+                <div class="chart-container">
+                    <h3>Aktivitas Minggu Ini</h3>
+                    <canvas id="weeklyChart"></canvas>
+                    <p class="chart-caption">Perbandingan jumlah transaksi per hari di minggu ini.</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Transaksi Terbaru</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Produk</th>
+                            <th>Email</th>
+                            <th>Nomor HP</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#DE-1715092001</td>
+                            <td>E-Book Kopi Barista</td>
+                            <td>budi@gmail.com</td>
+                            <td>081234567890</td>
+                            <td><span class="badge badge-success">Selesai</span></td>
+                        </tr>
+                        <tr>
+                            <td>#DE-1715092152</td>
+                            <td>Template Keripik PSD</td>
+                            <td>siti.rahma@yahoo.com</td>
+                            <td>085678901234</td>
+                            <td><span class="badge badge-success">Selesai</span></td>
+                        </tr>
+                        <tr>
+                            <td>#DE-1715093005</td>
+                            <td>Digital Asset Bundle</td>
+                            <td>andi.wijaya@outlook.com</td>
+                            <td>081122334455</td>
+                            <td><span class="badge badge-pending">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>#DE-1715094110</td>
+                            <td>E-Book Kopi Barista</td>
+                            <td>clara_123@gmail.com</td>
+                            <td>089988776655</td>
+                            <td><span class="badge badge-success">Selesai</span></td>
+                        </tr>
+                        <tr>
+                            <td>#DE-1715095221</td>
+                            <td>Template Keripik PSD</td>
+                            <td>doni_gaming@gmail.com</td>
+                            <td>087755443322</td>
+                            <td><span class="badge badge-success">Selesai</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /* --- SIDEBAR LOGIC --- */
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-open');
+        }
+
+        /* --- CHART JS LOGIC --- */
+        
+        // Data Dummy Bulanan (30 Hari)
+        const monthlyLabels = Array.from({length: 30}, (_, i) => i + 1);
+        const monthlyData = [300, 450, 320, 600, 800, 500, 400, 750, 900, 1100, 950, 800, 1200, 1500, 1300, 1100, 1000, 1250, 1400, 1600, 1800, 1700, 1900, 2100, 2000, 2200, 2500, 2300, 2400, 2800];
+
+        // Monthly Chart Configuration
+        const ctxMonthly = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(ctxMonthly, {
+            type: 'line',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Pendapatan (K)',
+                    data: monthlyData,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', maxRotation: 0, autoSkip: true, maxTicksLimit: 10 }
+                    }
+                }
+            }
+        });
+
+        // Weekly Chart Configuration
+        const ctxWeekly = document.getElementById('weeklyChart').getContext('2d');
+        new Chart(ctxWeekly, {
+            type: 'bar',
+            data: {
+                labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                datasets: [{
+                    label: 'Transaksi',
+                    data: [12, 19, 15, 25, 22, 30, 35],
+                    backgroundColor: '#8b5cf6',
+                    borderRadius: 8,
+                    hoverBackgroundColor: '#7c3aed'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.menu-toggle');
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(event.target) && !toggle.contains(event.target) && document.body.classList.contains('sidebar-open')) {
+                    document.body.classList.remove('sidebar-open');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
